@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: 090380/my-keycloak:v1.0
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DB_VENDOR
+          value: oracle
+        - name: DB_ADDR
+          value: 192.168.100.238
+        - name: DB_PORT
+          value: 1521
+        - name: DB_DATABASE
+          value: testpenale
+        - name: DB_USER
+          value: keycloak
+        - name: DB_PASSWORD
+          value: keycloak
+        - name: KEYCLOAK_USER
+          value: admin
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: keycloak-admin-password
+            key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    nodePort: 32000
+  selector:
+    app: keycloak
